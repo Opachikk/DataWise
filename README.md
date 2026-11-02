@@ -1,4 +1,4 @@
-# DataWise
+# <img src="public/favicon.svg" alt="" width="32" height="32" align="center" /> DataWise
 
 **Make your data useful.** A free, open-source toolkit for the everyday work of understanding spreadsheets. It runs entirely in your browser: no account, no upload, no server.
 

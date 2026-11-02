@@ -116,7 +116,7 @@ export default function App() {
   return (
     <div className="shell">
       <header className="bar">
-        <button className="mark" onClick={home}>DataWise</button>
+        <button className="mark" onClick={home}><img src="/favicon.svg" alt="" width="24" height="24" />DataWise</button>
         <nav className="tabs" aria-label="Tools">
           <button className={mode === 'check' ? 'on' : ''} onClick={() => setMode('check')}>SheetCheck</button>
           <button className={mode === 'diff' ? 'on' : ''} onClick={() => setMode('diff')}>Diffly</button>
