@@ -4,7 +4,19 @@
 
 <!-- Add a screenshot here once you have one, e.g. ![DataWise](docs/screenshot.png) -->
 
-DataWise has two independent tools in one workspace.
+DataWise has three independent tools in one workspace.
+
+## Explore: understand a dataset in one click
+
+Open a file and Explore builds a one-page overview automatically, with no code and no setup:
+
+- Rows, columns, empty cells and duplicate rows at a glance
+- A plain-language **Worth noticing** list (empty columns, lopsided numbers, repeated IDs, columns that never vary, strong relationships)
+- Every column profiled by type: histograms and key statistics for numbers, most common values for categories, counts over time for dates
+- A relationship grid showing which numeric columns move together
+- Download the column summary as CSV, or jump to SheetCheck to clean what you found
+
+Column types are detected from the values, so a column of numbers stored as text is still treated as numbers. Dates are recognized in `YYYY-MM-DD` form (Excel dates are converted automatically); other date styles are shown as text.
 
 ## SheetCheck: inspect and clean one file
 
@@ -83,6 +95,7 @@ DataWise is an early release.
 - Very large files are held in browser memory. 50,000 rows works well in testing, but results depend on your device.
 - Exports are CSV only.
 - Comparison is exact after trimming spaces. There is no fuzzy matching.
+- Explore's findings are automatic summaries, not statistical conclusions. Relationships show patterns, not causes, and only the first 12 numeric columns appear in the relationship grid.
 
 ## Contributing
 

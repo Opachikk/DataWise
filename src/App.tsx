@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { ArrowRight, Check, Download, FileSpreadsheet, GitCompareArrows, ScanSearch, Undo2, Upload, X } from 'lucide-react';
+import Explore from './Explore';
 import {
   ACCEPT, SUPPORTED, applyFix, cleanAll, compareData, comparisonRows, DEFAULT_CLEAN, downloadCsv, inspectData, parseFile, suggestKey,
   type CleanOptions, type Dataset, type Difference, type Issue, type Row,
 } from './data';
 
-type Mode = 'home' | 'check' | 'diff';
+type Mode = 'home' | 'check' | 'diff' | 'explore';
 type Slot = 'single' | 'left' | 'right';
 const PAGE = 25;
 const GSHEETS = 'Using Google Sheets? Choose File, Download, then Microsoft Excel (.xlsx) or CSV, and drop the file here.';
@@ -31,6 +32,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [note, setNote] = useState('');
+  const nextRef = useRef<Mode>('check');
   const pickers = { single: useRef<HTMLInputElement>(null), left: useRef<HTMLInputElement>(null), right: useRef<HTMLInputElement>(null) };
 
   const rows = working ?? dataset?.rows ?? [];
@@ -85,6 +87,7 @@ export default function App() {
     setLeft(before); setRight(after); setKeyColumn(suggestKey(before, after)); resetView(); setError(''); setNote(''); setMode('diff');
   }
   function resetView() { setQuery(''); setColFilter(''); setPage(0); setFilter('All'); setExpanded(new Set()); }
+  const openPicker = (m: Mode) => { nextRef.current = m; pickers.single.current?.click(); };
   function home() { setMode('home'); setError(''); setNote(''); }
 
   const shown = useMemo(() => {
@@ -120,6 +123,7 @@ export default function App() {
         <nav className="tabs" aria-label="Tools">
           <button className={mode === 'check' ? 'on' : ''} onClick={() => setMode('check')}>SheetCheck</button>
           <button className={mode === 'diff' ? 'on' : ''} onClick={() => setMode('diff')}>Diffly</button>
+          <button className={mode === 'explore' ? 'on' : ''} onClick={() => setMode('explore')}>Explore</button>
         </nav>
         <span className="bar-note">Files stay in your browser</span>
       </header>
@@ -134,10 +138,10 @@ export default function App() {
               <p className="lede">Drop in a CSV or Excel file. DataWise finds the blanks, duplicates, messy spacing and odd numbers, and can fix all of it in one click. Your file never leaves this browser tab.</p>
               <div className="drop" {...drop('single', 'check')}>
                 <h2>Drop a CSV or Excel file here</h2>
-                <div className="row-actions"><button className="btn primary" onClick={() => pickers.single.current?.click()}>Choose a file</button></div>
+                <div className="row-actions"><button className="btn primary" onClick={() => openPicker('check')}>Choose a file</button></div>
                 <p className="hint">{GSHEETS}</p>
               </div>
-              <p className="alt">Got two versions of the same file? <button className="link" onClick={() => setMode('diff')}>Compare them with Diffly</button>.</p>
+              <p className="alt">Want the big picture first? <button className="link" onClick={() => { setMode('explore'); openPicker('explore'); }}>Explore a dataset</button> for a one-page summary. Got two versions of the same file? <button className="link" onClick={() => setMode('diff')}>Compare them with Diffly</button>.</p>
             </div>
             <figure className="sheet">
               <table>
@@ -164,7 +168,7 @@ export default function App() {
                 <Upload size={22} />
                 <h2>{busy ? 'Reading file…' : 'Open a CSV or Excel file to inspect'}</h2>
                 <p>Drop it here, or choose a file. It never leaves this device.</p>
-                <div className="row-actions"><button className="btn primary" onClick={() => pickers.single.current?.click()}>Choose a file</button></div>
+                <div className="row-actions"><button className="btn primary" onClick={() => openPicker('check')}>Choose a file</button></div>
                 <p className="hint">{GSHEETS}</p>
               </div>
             ) : (
@@ -175,7 +179,7 @@ export default function App() {
                   <div className="row-actions">
                     {dataset.sheets && dataset.sheets.length > 1 && <label className="sheetpick">Sheet <select value={dataset.sheet} onChange={e => changeSheet('single', e.target.value)}>{dataset.sheets.map(n => <option key={n}>{n}</option>)}</select></label>}
                     {working && <button className="btn" onClick={() => { setWorking(null); setNote(''); setSelected(null); setReport(null); }}><Undo2 size={15} /> Undo all changes</button>}
-                    <button className="btn" onClick={() => pickers.single.current?.click()}>Replace</button>
+                    <button className="btn" onClick={() => openPicker('check')}>Replace</button>
                     <button className="btn" onClick={sendToDiffly}><GitCompareArrows size={15} /> Compare in Diffly</button>
                     <button className="btn primary" onClick={() => downloadCsv(`cleaned-${dataset.name}`, rows, dataset.columns)}><Download size={15} /> Export CSV</button>
                   </div>
@@ -372,7 +376,21 @@ export default function App() {
             )}
           </section>
         )}
-        <input ref={pickers.single} hidden type="file" accept={ACCEPT} onChange={e => { load(e.target.files?.[0], 'single', 'check'); e.target.value = ''; }} />
+        {mode === 'explore' && (
+          <section>
+            {!dataset || !current ? (
+              <div className="drop" {...drop('single')}>
+                <h2>{busy ? 'Reading file…' : 'Open a file to explore'}</h2>
+                <p>Get every column’s type, spread, empty cells and relationships on one page. It all happens in this tab.</p>
+                <div className="row-actions"><button className="btn primary" onClick={() => openPicker('explore')}>Choose a file</button></div>
+                <p className="hint">{GSHEETS}</p>
+              </div>
+            ) : (
+              <Explore data={current} cleaned={!!working} onReplace={() => openPicker('explore')} onClean={() => setMode('check')} onSheet={s => changeSheet('single', s)} />
+            )}
+          </section>
+        )}
+        <input ref={pickers.single} hidden type="file" accept={ACCEPT} onChange={e => { load(e.target.files?.[0], 'single', nextRef.current); e.target.value = ''; }} />
         <input ref={pickers.left} hidden type="file" accept={ACCEPT} onChange={e => { load(e.target.files?.[0], 'left'); e.target.value = ''; }} />
         <input ref={pickers.right} hidden type="file" accept={ACCEPT} onChange={e => { load(e.target.files?.[0], 'right'); e.target.value = ''; }} />
       </main>
