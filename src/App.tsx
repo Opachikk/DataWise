@@ -394,7 +394,7 @@ export default function App() {
         <input ref={pickers.left} hidden type="file" accept={ACCEPT} onChange={e => { load(e.target.files?.[0], 'left'); e.target.value = ''; }} />
         <input ref={pickers.right} hidden type="file" accept={ACCEPT} onChange={e => { load(e.target.files?.[0], 'right'); e.target.value = ''; }} />
       </main>
-      <footer>Free and open source (MIT). CSV only for now; heuristic checks can be wrong, so review before you trust them.</footer>
+      <footer>Free and open source (MIT).Heuristic checks can be wrong, so review before you trust them.</footer>
     </div>
   );
 }
